@@ -1,6 +1,7 @@
 const IS_PROD = ['production', 'prod'].includes(process.env.NODE_ENV)
-const defaultSettings = require('./src/main.js')
+// const defaultSettings = require('src/main.js')
 const path = require('path')
+const webpack = require('webpack')
 const resolve = dir => path.join(__dirname, dir)
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 const plugins = [
@@ -11,7 +12,7 @@ const plugins = [
             libraryDirectory: 'es',
             style: true
         },
-        'vant'
+        'vant',
     ]
 ]
 // 去除 console.log
@@ -39,22 +40,6 @@ module.exports = {
                 }
             }
         }
-    },
-    css: {
-        extract: IS_PROD,
-        sourceMap: false,
-        loaderOptions: {
-            // 给 scss-loader 传递选项
-            scss: {
-                // 注入 `sass` 的 `mixin` `variables` 到全局, $cdn可以配置图片cdn
-                // 详情: https://cli.vuejs.org/guide/css.html#passing-options-to-pre-processor-loaders
-                prependData: `
-                @import "assets/css/mixin.scss";
-                @import "assets/css/variables.scss";
-                $cdn: "${defaultSettings.$cdn}";
-                 `,
-            },
-        },
     },
     chainWebpack: config => {
         // 添加别名
@@ -110,7 +95,28 @@ module.exports = {
             })
             config.optimization.runtimeChunk('single')
         })
+        config.plugin('provide').use(webpack.ProvidePlugin, [{
+            $: 'jquery',
+            jQuery: 'jquery',
+            'window.jQuery': 'jquery',
+            Popper: ['popper.js', 'default']
+        }])
     },
-    presets: [['@vue/cli-plugin-babel/preset', {useBuiltIns: 'entry'}]],
-    plugins,
+    css: {
+        extract: IS_PROD,
+        sourceMap: false,
+        loaderOptions: {
+            // 给 scss-loader 传递选项
+            scss: {
+                // 注入 `sass` 的 `mixin` `variables` 到全局, $cdn可以配置图片cdn
+                // 详情: https://cli.vuejs.org/guide/css.html#passing-options-to-pre-processor-loaders
+                prependData: `
+                @import "assets/css/mixin.scss";
+                @import "assets/css/variables.scss";
+                 `,
+                // $cdn: "${defaultSettings.$cdn}";
+            },
+        },
+    },
+    // presets: [['@vue/cli-plugin-babel/preset', {useBuiltIns: 'entry'}]],
 }
